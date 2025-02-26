@@ -1,4 +1,4 @@
-import { TrendingUp, Award, Zap, Calendar, CheckCircle2, ChevronDown } from 'lucide-react';
+import { TrendingUp, Award, Zap, Calendar, CheckCircle2, ChevronDown, BarChart3 } from 'lucide-react';
 import { useState } from 'react';
 
 const StatsCard = ({ stats, className = '' }) => {
@@ -12,78 +12,107 @@ const StatsCard = ({ stats, className = '' }) => {
   };
 
   return (
-    <div className={`bg-white rounded-xl shadow-lg p-6 ${className}`}>
-      <h2 className="text-xl font-bold text-gray-800 mb-6">Your Progress</h2>
+    <div className={`bg-white rounded-2xl shadow-lg p-6 border border-gray-100 relative overflow-hidden ${className}`}>
+      {/* Decorative elements */}
+      <div className="absolute -left-16 -top-16 w-48 h-48 bg-indigo-50 rounded-full opacity-50"></div>
+      <div className="absolute -right-8 -bottom-8 w-32 h-32 bg-purple-50 rounded-full opacity-50"></div>
       
-      <div className="grid grid-cols-2 sm:grid-cols-4 xl:grid-cols-2 gap-4 mb-6">
-        <div className="bg-purple-50 p-4 rounded-lg">
+      <h2 className="text-xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-indigo-600 to-purple-600 mb-6 relative">
+        Your Progress
+      </h2>
+      
+      <div className="grid grid-cols-2 sm:grid-cols-4 xl:grid-cols-2 gap-4 mb-8 relative">
+        <div className="bg-gradient-to-br from-purple-50 to-purple-100 p-5 rounded-2xl shadow-sm border border-purple-100 transform transition-transform hover:scale-105 duration-300">
           <div className="flex items-center space-x-2 mb-2">
-            <TrendingUp className="w-5 h-5 text-purple-600" />
-            <span className="font-medium text-purple-600">Total Points</span>
+            <div className="p-1.5 bg-purple-200 rounded-lg">
+              <TrendingUp className="w-5 h-5 text-purple-600" />
+            </div>
+            <span className="font-medium text-purple-700">Total Points</span>
           </div>
-          <p className="text-2xl font-bold text-purple-700">{stats.totalPoints.toFixed(2)}</p>
+          <p className="text-2xl font-bold text-purple-800">{stats.totalPoints.toFixed(2)}</p>
         </div>
         
-        <div className="bg-blue-50 p-4 rounded-lg">
+        <div className="bg-gradient-to-br from-blue-50 to-blue-100 p-5 rounded-2xl shadow-sm border border-blue-100 transform transition-transform hover:scale-105 duration-300">
           <div className="flex items-center space-x-2 mb-2">
-            <Award className="w-5 h-5 text-blue-600" />
-            <span className="font-medium text-blue-600">Active Yugas</span>
+            <div className="p-1.5 bg-blue-200 rounded-lg">
+              <Award className="w-5 h-5 text-blue-600" />
+            </div>
+            <span className="font-medium text-blue-700">Active Yugas</span>
           </div>
-          <p className="text-2xl font-bold text-blue-700">{stats.totalYugas}</p>
+          <p className="text-2xl font-bold text-blue-800">{stats.totalYugas}</p>
         </div>
         
-        <div className="bg-green-50 p-4 rounded-lg">
+        <div className="bg-gradient-to-br from-green-50 to-green-100 p-5 rounded-2xl shadow-sm border border-green-100 transform transition-transform hover:scale-105 duration-300">
           <div className="flex items-center space-x-2 mb-2">
-            <CheckCircle2 className="w-5 h-5 text-green-600" />
-            <span className="font-medium text-green-600">Bonus Tasks</span>
+            <div className="p-1.5 bg-green-200 rounded-lg">
+              <CheckCircle2 className="w-5 h-5 text-green-600" />
+            </div>
+            <span className="font-medium text-green-700">Bonus Tasks</span>
           </div>
-          <p className="text-2xl font-bold text-green-700">{stats.completedBonusTasks}</p>
+          <p className="text-2xl font-bold text-green-800">{stats.completedBonusTasks}</p>
         </div>
         
-        <div className="bg-yellow-50 p-4 rounded-lg">
+        <div className="bg-gradient-to-br from-amber-50 to-amber-100 p-5 rounded-2xl shadow-sm border border-amber-100 transform transition-transform hover:scale-105 duration-300">
           <div className="flex items-center space-x-2 mb-2">
-            <Zap className="w-5 h-5 text-yellow-600" />
-            <span className="font-medium text-yellow-600">Streak</span>
+            <div className="p-1.5 bg-amber-200 rounded-lg">
+              <Zap className="w-5 h-5 text-amber-600" />
+            </div>
+            <span className="font-medium text-amber-700">Streak</span>
           </div>
-          <p className="text-2xl font-bold text-yellow-700">{stats.consistencyStreak} days</p>
+          <p className="text-2xl font-bold text-amber-800">{stats.consistencyStreak} days</p>
         </div>
       </div>
       
-      <div>
+      <div className="relative">
         <h3 className="text-lg font-semibold mb-4 flex items-center">
-          <Calendar className="w-5 h-5 mr-2 text-gray-600" />
-          Recent Points History
+          <div className="p-1.5 bg-indigo-100 rounded-lg mr-2">
+            <BarChart3 className="w-5 h-5 text-indigo-600" />
+          </div>
+          <span className="bg-clip-text text-transparent bg-gradient-to-r from-indigo-600 to-purple-600">
+            Recent Points History
+          </span>
         </h3>
+        
         <div className="space-y-3">
           {stats.pointsHistory.map((day, index) => (
-            <div key={index} className="rounded-lg border border-gray-100 p-3 hover:border-gray-200 transition-colors">
+            <div key={index} className="rounded-xl border border-gray-100 hover:border-indigo-200 transition-all duration-300 overflow-hidden shadow-sm">
               <button 
                 onClick={() => toggleDay(day.date)}
-                className="w-full text-left"
+                className="w-full text-left p-3 bg-gradient-to-r from-white to-gray-50"
               >
                 <div className="flex items-center justify-between text-sm">
                   <div className="flex items-center space-x-2">
                     <ChevronDown 
-                      className={`w-4 h-4 text-gray-500 transition-transform ${expandedDays[day.date] ? 'transform rotate-180' : ''}`}
+                      className={`w-4 h-4 text-indigo-500 transition-transform duration-300 ${expandedDays[day.date] ? 'transform rotate-180' : ''}`}
                     />
-                    <span className="text-gray-600">{day.date}</span>
+                    <span className="font-medium text-gray-700">{day.date}</span>
                   </div>
-                  <span className={`font-medium ${day.points >= 0 ? 'text-green-600' : 'text-red-600'}`}>
+                  <span className={`font-medium px-2 py-0.5 rounded-full ${day.points >= 0 ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'}`}>
                     {day.points >= 0 ? '+' : ''}{day.points.toFixed(2)}pts
                   </span>
                 </div>
               </button>
+              
               {expandedDays[day.date] && day.titles && day.titles.length > 0 && (
-                <div className="mt-2 pl-6 text-sm text-gray-600 border-t pt-2">
-                  <ul className="list-disc space-y-1 pl-4">
+                <div className="p-3 bg-indigo-50 text-sm text-indigo-800 border-t border-indigo-100 animate-fadeIn">
+                  <ul className="space-y-2 pl-6">
                     {day.titles.map((title, idx) => (
-                      <li key={idx}>{title}</li>
+                      <li key={idx} className="flex items-start">
+                        <span className="inline-block w-1.5 h-1.5 rounded-full bg-indigo-400 mt-1.5 mr-2"></span>
+                        <span>{title}</span>
+                      </li>
                     ))}
                   </ul>
                 </div>
               )}
             </div>
           ))}
+          
+          {stats.pointsHistory.length === 0 && (
+            <div className="text-center p-4 bg-gray-50 rounded-xl text-gray-500 italic">
+              No recent activity to display
+            </div>
+          )}
         </div>
       </div>
     </div>

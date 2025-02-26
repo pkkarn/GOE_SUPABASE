@@ -16,6 +16,8 @@ The system encourages consistent daily effort over sporadic bursts of activity, 
 
 ![Game of Evolution Screenshot](assets/screenshots/dashboard.png)
 
+![CreateYuga](assets/screenshots/createyuga.png)
+
 ## Quick Start
 
 ### Prerequisites
