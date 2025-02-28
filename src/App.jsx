@@ -1,9 +1,10 @@
 import { useState, useEffect } from 'react';
-import { Plus, LogOut, Sparkles, Rocket } from 'lucide-react';
+import { Plus, LogOut, Sparkles, Rocket, ChevronRight, User, Mail, Lock, ArrowLeft } from 'lucide-react';
 import { Toaster, toast } from 'react-hot-toast';
 import YugaCard from './components/YugaCard';
 import StatsCard from './components/StatsCard';
 import CreateYugaModal from './components/CreateYugaModal';
+import GameOfEvolutionLanding from './components/LandingPage';
 import { supabase } from './lib/supabase';
 
 function App() {
@@ -18,6 +19,12 @@ function App() {
   });
   const [user, setUser] = useState(null);
   const [isLoading, setIsLoading] = useState(true);
+  const [showLanding, setShowLanding] = useState(true);
+  const [showLoginForm, setShowLoginForm] = useState(false);
+  const [showSignupForm, setShowSignupForm] = useState(false);
+  const [formData, setFormData] = useState({ email: '', password: '', confirmPassword: '', fullName: '' });
+  const [loginError, setLoginError] = useState('');
+  const [signupError, setSignupError] = useState('');
 
   useEffect(() => {
     // Check current auth session
@@ -181,6 +188,122 @@ function App() {
     }
   };
 
+  const handleSignIn = async (e) => {
+    e.preventDefault();
+    try {
+      setLoginError('');
+      const { data, error } = await supabase.auth.signInWithPassword({
+        email: formData.email,
+        password: formData.password
+      });
+
+      if (error) throw error;
+      // On successful sign in, show the main app
+      setShowLanding(false);
+    } catch (error) {
+      setLoginError(error.message || 'Failed to sign in');
+    }
+  };
+
+  const handleSignUp = async (e) => {
+    e.preventDefault();
+    try {
+      setSignupError('');
+      // Validate passwords match
+      if (formData.password !== formData.confirmPassword) {
+        setSignupError('Passwords do not match');
+        return;
+      }
+
+      // Validate password length
+      if (formData.password.length < 6) {
+        setSignupError('Password must be at least 6 characters');
+        return;
+      }
+
+      // Register with Supabase
+      const { data, error } = await supabase.auth.signUp({
+        email: formData.email,
+        password: formData.password,
+        options: {
+          data: {
+            full_name: formData.fullName || '',
+          },
+        },
+      });
+
+      if (error) throw error;
+
+      toast.success('Sign up successful! Please check your email to confirm your account.');
+      // Return to sign in form after successful signup
+      setShowSignupForm(false);
+      setShowLoginForm(true);
+      
+      // Clear form
+      setFormData({ email: '', password: '', confirmPassword: '', fullName: '' });
+    } catch (error) {
+      setSignupError(error.message || 'Failed to sign up');
+    }
+  };
+
+  const handleInputChange = (e) => {
+    const { name, value } = e.target;
+    setFormData({ ...formData, [name]: value });
+  };
+
+  const handleCreateYugaClick = () => {
+    // If user is already logged in, show the create modal
+    if (user) {
+      setShowLanding(false); // Hide landing page
+      setIsCreateModalOpen(true); // Open create modal
+    } else {
+      // If not logged in, show the login form
+      setShowLanding(false); // Hide landing page
+      setShowLoginForm(true); // Show login form
+    }
+  };
+
+  const goToSignUp = () => {
+    setShowLoginForm(false);
+    setShowSignupForm(true);
+    setLoginError('');
+    setSignupError('');
+  };
+
+  const goToSignIn = () => {
+    setShowSignupForm(false);
+    setShowLoginForm(true);
+    setLoginError('');
+    setSignupError('');
+  };
+
+  // Show Landing Page
+  if (showLanding) {
+    return (
+      <>
+        <GameOfEvolutionLanding />
+        <div className="fixed bottom-6 right-6 z-50 flex space-x-4">
+          {user && (
+            <button 
+              onClick={() => setShowLanding(false)}
+              className="bg-white/80 backdrop-blur-md text-purple-900 px-4 py-2 rounded-full font-medium hover:bg-white transition-all shadow-lg flex items-center"
+            >
+              <Rocket className="w-4 h-4 mr-2" />
+              Go to Dashboard
+            </button>
+          )}
+          <button 
+            onClick={handleCreateYugaClick}
+            className="bg-gradient-to-r from-purple-500 to-indigo-600 text-white px-4 py-2 rounded-full font-medium hover:shadow-lg hover:shadow-purple-500/30 transition-all flex items-center"
+          >
+            <Plus className="w-4 h-4 mr-2" />
+            Create Yuga
+          </button>
+        </div>
+      </>
+    );
+  }
+
   if (isLoading) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-purple-50 to-indigo-50 flex items-center justify-center">
@@ -196,37 +319,294 @@ function App() {
 
   if (!user) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-purple-50 to-indigo-50 flex items-center justify-center p-4">
-        <div className="bg-white p-8 rounded-2xl shadow-xl max-w-md w-full border border-purple-100 relative overflow-hidden">
-          <div className="absolute -right-16 -top-16 w-48 h-48 bg-purple-50 rounded-full opacity-50"></div>
-          <div className="absolute -left-12 -bottom-12 w-40 h-40 bg-indigo-50 rounded-full opacity-50"></div>
-          
-          <div className="relative">
-            <div className="flex justify-center mb-2">
-              <div className="w-16 h-16 bg-gradient-to-r from-purple-600 to-indigo-600 rounded-full flex items-center justify-center">
-                <Rocket className="w-8 h-8 text-white" />
+      <div className="min-h-screen bg-gradient-to-b from-purple-900 via-indigo-900 to-black text-white flex items-center justify-center p-4">
+        <div className="absolute inset-0 pointer-events-none">
+          {Array.from({ length: 30 }).map((_, i) => (
+            <div
+              key={i}
+              className="absolute rounded-full bg-white opacity-70"
+              style={{
+                width: Math.random() * 3 + 'px',
+                height: Math.random() * 3 + 'px',
+                top: Math.random() * 100 + '%',
+                left: Math.random() * 100 + '%',
+                animation: `twinkle ${Math.random() * 5 + 5}s linear infinite`,
+              }}
+            />
+          ))}
+        </div>
+        
+        <div className="bg-gradient-to-br from-purple-800/90 to-indigo-900/90 backdrop-blur-xl rounded-2xl p-8 max-w-md w-full border border-white/10 shadow-2xl">
+          <div className="flex items-center justify-center mb-6">
+            <div className="relative h-10 w-10 mr-2">
+              <div className="absolute inset-0 bg-purple-500 rounded-md rotate-45" />
+              <div className="absolute inset-0 flex items-center justify-center">
+                <Sparkles className="w-5 h-5 text-white" />
               </div>
             </div>
-            
-            <h1 className="text-2xl font-bold text-center mb-8 bg-clip-text text-transparent bg-gradient-to-r from-purple-600 to-indigo-600">
+            <h1 className="text-2xl font-bold bg-gradient-to-r from-purple-400 to-pink-300 bg-clip-text text-transparent">
               Game of Evolution
             </h1>
-            
-            <p className="text-gray-600 text-center mb-6">
-              Track your progress, build consistency, and evolve your skills
-            </p>
-            
-            <button
-              onClick={() => supabase.auth.signInWithPassword({
-                email: 'demo@example.com',
-                password: 'demo123'
-              })}
-              className="w-full py-3 px-4 bg-gradient-to-r from-purple-600 to-indigo-600 text-white rounded-xl hover:from-purple-700 hover:to-indigo-700 transition-all duration-300 shadow-md hover:shadow-lg transform hover:-translate-y-0.5 font-medium"
-            >
-              Sign In to Demo
-            </button>
           </div>
+          
+          {showSignupForm ? (
+            <>
+              <div className="flex items-center mb-6">
+                <button
+                  onClick={goToSignIn}
+                  className="text-purple-300 hover:text-purple-200 p-1 -ml-1 rounded-full transition-colors"
+                >
+                  <ArrowLeft className="w-5 h-5" />
+                </button>
+                <h2 className="text-xl font-semibold text-center flex-1 pr-6">Create Your Account</h2>
+              </div>
+              
+              {signupError && (
+                <div className="bg-red-500/20 border border-red-500/50 text-red-200 px-4 py-2 rounded-lg mb-4">
+                  {signupError}
+                </div>
+              )}
+              
+              <form onSubmit={handleSignUp} className="space-y-4">
+                <div>
+                  <label htmlFor="fullName" className="block text-sm font-medium text-purple-200 mb-1">
+                    Full Name (Optional)
+                  </label>
+                  <div className="relative">
+                    <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                      <User className="h-5 w-5 text-purple-400" />
+                    </div>
+                    <input
+                      type="text"
+                      id="fullName"
+                      name="fullName"
+                      value={formData.fullName}
+                      onChange={handleInputChange}
+                      className="w-full bg-purple-900/50 border border-purple-500/30 rounded-lg pl-10 px-4 py-2 text-white focus:outline-none focus:ring-2 focus:ring-purple-500/50"
+                      placeholder="Your Name"
+                    />
+                  </div>
+                </div>
+                
+                <div>
+                  <label htmlFor="signupEmail" className="block text-sm font-medium text-purple-200 mb-1">
+                    Email Address
+                  </label>
+                  <div className="relative">
+                    <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                      <Mail className="h-5 w-5 text-purple-400" />
+                    </div>
+                    <input
+                      type="email"
+                      id="signupEmail"
+                      name="email"
+                      value={formData.email}
+                      onChange={handleInputChange}
+                      className="w-full bg-purple-900/50 border border-purple-500/30 rounded-lg pl-10 px-4 py-2 text-white focus:outline-none focus:ring-2 focus:ring-purple-500/50"
+                      placeholder="your@email.com"
+                      required
+                    />
+                  </div>
+                </div>
+                
+                <div>
+                  <label htmlFor="signupPassword" className="block text-sm font-medium text-purple-200 mb-1">
+                    Password
+                  </label>
+                  <div className="relative">
+                    <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                      <Lock className="h-5 w-5 text-purple-400" />
+                    </div>
+                    <input
+                      type="password"
+                      id="signupPassword"
+                      name="password"
+                      value={formData.password}
+                      onChange={handleInputChange}
+                      className="w-full bg-purple-900/50 border border-purple-500/30 rounded-lg pl-10 px-4 py-2 text-white focus:outline-none focus:ring-2 focus:ring-purple-500/50"
+                      placeholder="••••••••"
+                      required
+                    />
+                  </div>
+                  <p className="text-xs text-purple-300 mt-1">Min. 6 characters</p>
+                </div>
+                
+                <div>
+                  <label htmlFor="confirmPassword" className="block text-sm font-medium text-purple-200 mb-1">
+                    Confirm Password
+                  </label>
+                  <div className="relative">
+                    <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                      <Lock className="h-5 w-5 text-purple-400" />
+                    </div>
+                    <input
+                      type="password"
+                      id="confirmPassword"
+                      name="confirmPassword"
+                      value={formData.confirmPassword}
+                      onChange={handleInputChange}
+                      className="w-full bg-purple-900/50 border border-purple-500/30 rounded-lg pl-10 px-4 py-2 text-white focus:outline-none focus:ring-2 focus:ring-purple-500/50"
+                      placeholder="••••••••"
+                      required
+                    />
+                  </div>
+                </div>
+                
+                <button
+                  type="submit"
+                  className="w-full bg-gradient-to-r from-purple-500 to-indigo-600 px-4 py-2 rounded-lg font-medium hover:shadow-lg hover:shadow-purple-500/30 transition-all mt-6"
+                >
+                  Create Account
+                </button>
+              </form>
+              
+              <div className="mt-6 text-center">
+                <p className="text-purple-200 text-sm">
+                  Already have an account?{' '}
+                  <button
+                    onClick={goToSignIn}
+                    className="text-purple-300 hover:text-purple-200 underline"
+                  >
+                    Sign In
+                  </button>
+                </p>
+              </div>
+            </>
+          ) : showLoginForm ? (
+            <>
+              <h2 className="text-xl font-semibold mb-6 text-center">Sign In to Create Your Yuga</h2>
+              
+              {loginError && (
+                <div className="bg-red-500/20 border border-red-500/50 text-red-200 px-4 py-2 rounded-lg mb-4">
+                  {loginError}
+                </div>
+              )}
+              
+              <form onSubmit={handleSignIn} className="space-y-4">
+                <div>
+                  <label htmlFor="email" className="block text-sm font-medium text-purple-200 mb-1">
+                    Email
+                  </label>
+                  <div className="relative">
+                    <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                      <Mail className="h-5 w-5 text-purple-400" />
+                    </div>
+                    <input
+                      type="email"
+                      id="email"
+                      name="email"
+                      value={formData.email}
+                      onChange={handleInputChange}
+                      className="w-full bg-purple-900/50 border border-purple-500/30 rounded-lg pl-10 px-4 py-2 text-white focus:outline-none focus:ring-2 focus:ring-purple-500/50"
+                      placeholder="your@email.com"
+                      required
+                    />
+                  </div>
+                </div>
+                
+                <div>
+                  <label htmlFor="password" className="block text-sm font-medium text-purple-200 mb-1">
+                    Password
+                  </label>
+                  <div className="relative">
+                    <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                      <Lock className="h-5 w-5 text-purple-400" />
+                    </div>
+                    <input
+                      type="password"
+                      id="password"
+                      name="password"
+                      value={formData.password}
+                      onChange={handleInputChange}
+                      className="w-full bg-purple-900/50 border border-purple-500/30 rounded-lg pl-10 px-4 py-2 text-white focus:outline-none focus:ring-2 focus:ring-purple-500/50"
+                      placeholder="••••••••"
+                      required
+                    />
+                  </div>
+                </div>
+                
+                <button
+                  type="submit"
+                  className="w-full bg-gradient-to-r from-purple-500 to-indigo-600 px-4 py-2 rounded-lg font-medium hover:shadow-lg hover:shadow-purple-500/30 transition-all"
+                >
+                  Sign In
+                </button>
+              </form>
+              
+              <div className="mt-6 text-center space-y-4">
+                <p className="text-purple-200 text-sm">
+                  Don't have an account?{' '}
+                  <button
+                    onClick={goToSignUp}
+                    className="text-purple-300 hover:text-purple-200 underline"
+                  >
+                    Sign Up
+                  </button>
+                </p>
+                
+                <button
+                  onClick={() => {
+                    setShowLoginForm(false);
+                  }}
+                  className="text-purple-300 hover:text-purple-200 text-sm underline"
+                >
+                  Back to Options
+                </button>
+              </div>
+            </>
+          ) : (
+            <>
+              <div className="text-center mb-8">
+                <p className="text-purple-200 mb-4">
+                  Track your personal development journey through the ancient wisdom of Yugas, 
+                  turning consistent efforts into measurable evolution.
+                </p>
+              </div>
+              
+              <div className="space-y-4">
+                <button
+                  onClick={() => setShowLoginForm(true)}
+                  className="w-full bg-gradient-to-r from-purple-500 to-indigo-600 px-4 py-2 rounded-lg font-medium hover:shadow-lg hover:shadow-purple-500/30 transition-all flex items-center justify-center"
+                >
+                  Sign In
+                </button>
+                
+                <button
+                  onClick={goToSignUp}
+                  className="w-full bg-white/10 backdrop-blur-sm border border-white/20 px-4 py-2 rounded-lg font-medium hover:bg-white/20 transition-all"
+                >
+                  Create Account
+                </button>
+                
+                <button
+                  onClick={() => supabase.auth.signInWithPassword({
+                    email: 'demo@example.com',
+                    password: 'demo123'
+                  })}
+                  className="w-full bg-gradient-to-r from-indigo-500/30 to-purple-500/30 px-4 py-2 rounded-lg font-medium hover:from-indigo-500/40 hover:to-purple-500/40 transition-all"
+                >
+                  Try Demo Account
+                </button>
+              </div>
+              
+              <div className="mt-8 text-center">
+                <button
+                  onClick={() => setShowLanding(true)}
+                  className="text-purple-300 hover:text-purple-200 text-sm flex items-center justify-center mx-auto"
+                >
+                  Back to Landing Page <ChevronRight className="w-4 h-4 ml-1" />
+                </button>
+              </div>
+            </>
+          )}
         </div>
+        
+        <style>{`
+          @keyframes twinkle {
+            0%, 100% { opacity: 0.2; }
+            50% { opacity: 0.8; }
+          }
+        `}</style>
       </div>
     );
   }
@@ -267,6 +647,12 @@ function App() {
               Game of Evolution
             </h1>
             <div className="flex items-center space-x-4">
+              <button
+                onClick={() => setShowLanding(true)}
+                className="text-purple-600 hover:text-purple-800 flex items-center"
+              >
+                View Landing Page
+              </button>
               <button
                 onClick={() => setIsCreateModalOpen(true)}
                 className="inline-flex items-center px-4 py-2 bg-gradient-to-r from-purple-600 to-indigo-600 text-white rounded-xl hover:from-purple-700 hover:to-indigo-700 transition-all duration-300 shadow-md hover:shadow-lg transform hover:-translate-y-0.5"

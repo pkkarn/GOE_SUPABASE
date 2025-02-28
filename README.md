@@ -14,6 +14,8 @@ Game of Evolution (GOE) is a unique personal development tracking system inspire
 
 The system encourages consistent daily effort over sporadic bursts of activity, helping you evolve steadily towards your goals.
 
+![Landing](assets/screenshots/landing.png)
+
 ![Game of Evolution Screenshot](assets/screenshots/dashboard.png)
 
 ![CreateYuga](assets/screenshots/createyuga.png)
