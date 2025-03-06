@@ -1,0 +1,3 @@
+- make sure to close the modal once yuga created
+- make sure to shift bonus tasks in right side as they are limited and defined one time
+- make sure in daily entry one can add only one task in a day not more than that.

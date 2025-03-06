@@ -145,7 +145,7 @@ function App() {
     return hours * 0.2;
   };
 
-  const handleAddEntry = async (yugaId, entry) => {
+  const handleAddEntry = async (yugaId, entry, existingEntryId = null) => {
     try {
       const points = calculatePoints(parseFloat(entry.hours));
       
@@ -158,34 +158,73 @@ function App() {
 
       if (fetchError) throw fetchError;
 
-      // Insert new entry
-      const { data: newEntry, error: entryError } = await supabase
-        .from('daily_entries')
-        .insert({
-          yuga_id: yugaId,
-          title: entry.title,
-          description: entry.description,
-          hours: parseFloat(entry.hours),
-          points
-        })
-        .select()
-        .single();
+      if (existingEntryId) {
+        // Get existing entry's points first to calculate the difference
+        const { data: existingEntry, error: fetchEntryError } = await supabase
+          .from('daily_entries')
+          .select('points')
+          .eq('id', existingEntryId)
+          .single();
+          
+        if (fetchEntryError) throw fetchEntryError;
+        
+        // Calculate point difference
+        const pointsDifference = points - existingEntry.points;
+        
+        // Update existing entry
+        const { error: updateError } = await supabase
+          .from('daily_entries')
+          .update({
+            title: entry.title,
+            description: entry.description,
+            hours: parseFloat(entry.hours),
+            points
+          })
+          .eq('id', existingEntryId);
 
-      if (entryError) throw entryError;
+        if (updateError) throw updateError;
+        
+        // Update yuga points by adding the point difference to current points
+        const { error: yugaError } = await supabase
+          .from('yugas')
+          .update({ current_points: (currentYuga.current_points || 0) + pointsDifference })
+          .eq('id', yugaId);
+          
+        if (yugaError) throw yugaError;
+        
+        // Refresh data
+        await Promise.all([fetchYugas(), calculateStats()]);
+        toast.success('Entry updated successfully');
+      } else {
+        // Insert new entry
+        const { data: newEntry, error: entryError } = await supabase
+          .from('daily_entries')
+          .insert({
+            yuga_id: yugaId,
+            title: entry.title,
+            description: entry.description,
+            hours: parseFloat(entry.hours),
+            points
+          })
+          .select()
+          .single();
 
-      // Update yuga points by adding new points to current points
-      const { error: yugaError } = await supabase
-        .from('yugas')
-        .update({ current_points: (currentYuga.current_points || 0) + points })
-        .eq('id', yugaId);
+        if (entryError) throw entryError;
 
-      if (yugaError) throw yugaError;
+        // Update yuga points by adding new points to current points
+        const { error: yugaError } = await supabase
+          .from('yugas')
+          .update({ current_points: (currentYuga.current_points || 0) + points })
+          .eq('id', yugaId);
 
-      // Refresh data
-      await Promise.all([fetchYugas(), calculateStats()]);
-      toast.success('Entry added successfully');
+        if (yugaError) throw yugaError;
+
+        // Refresh data
+        await Promise.all([fetchYugas(), calculateStats()]);
+        toast.success('Entry added successfully');
+      }
     } catch (error) {
-      toast.error('Failed to add entry');
+      toast.error(existingEntryId ? 'Failed to update entry' : 'Failed to add entry');
       console.error('Error:', error);
     }
   };
