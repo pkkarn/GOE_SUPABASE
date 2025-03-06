@@ -87,19 +87,18 @@ const StatsCard = ({ stats, className = '' }) => {
                     />
                     <span className="font-medium text-gray-700">{day.date}</span>
                   </div>
-                  <span className={`font-medium px-2 py-0.5 rounded-full ${day.points >= 0 ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'}`}>
-                    {day.points >= 0 ? '+' : ''}{day.points.toFixed(2)}pts
-                  </span>
+                  <span className="font-bold text-indigo-600">+{day.points} points</span>
                 </div>
               </button>
               
-              {expandedDays[day.date] && day.titles && day.titles.length > 0 && (
-                <div className="p-3 bg-indigo-50 text-sm text-indigo-800 border-t border-indigo-100 animate-fadeIn">
-                  <ul className="space-y-2 pl-6">
-                    {day.titles.map((title, idx) => (
-                      <li key={idx} className="flex items-start">
-                        <span className="inline-block w-1.5 h-1.5 rounded-full bg-indigo-400 mt-1.5 mr-2"></span>
-                        <span>{title}</span>
+              {expandedDays[day.date] && (
+                <div className="px-4 py-3 bg-indigo-50 border-t border-indigo-100">
+                  <h4 className="text-xs font-semibold text-indigo-700 uppercase mb-2">Activity Details</h4>
+                  <ul className="space-y-1.5">
+                    {day.descriptions.map((desc, idx) => (
+                      <li key={idx} className="text-sm text-gray-700 flex items-start">
+                        <div className="w-1.5 h-1.5 rounded-full bg-indigo-400 mt-1.5 mr-2 flex-shrink-0"></div>
+                        <span>{desc}</span>
                       </li>
                     ))}
                   </ul>

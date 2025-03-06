@@ -70,29 +70,29 @@ function App() {
 
   const calculateStats = async () => {
     try {
-      // Fetch all daily entries for the last 5 days
+      // Fetch all points history for the last 5 days
       const fiveDaysAgo = new Date();
       fiveDaysAgo.setDate(fiveDaysAgo.getDate() - 5);
 
-      const { data: entries, error: entriesError } = await supabase
-        .from('daily_entries')
-        .select('points, created_at, title')
+      const { data: pointsData, error: pointsError } = await supabase
+        .from('points_history')
+        .select('points, created_at, description, source_type')
         .gte('created_at', fiveDaysAgo.toISOString())
         .order('created_at', { ascending: false });
 
-      if (entriesError) throw entriesError;
+      if (pointsError) throw pointsError;
 
-      // Group entries by date and sum points
-      const pointsByDate = entries.reduce((acc, entry) => {
+      // Group points by date and sum points
+      const pointsByDate = pointsData.reduce((acc, entry) => {
         const date = new Date(entry.created_at).toISOString().split('T')[0];
         if (!acc[date]) {
           acc[date] = {
             points: 0,
-            titles: []
+            descriptions: []
           };
         }
         acc[date].points += entry.points;
-        acc[date].titles.push(entry.title);
+        acc[date].descriptions.push(entry.description);
         return acc;
       }, {});
 
@@ -101,12 +101,12 @@ function App() {
         .map(([date, data]) => ({
           date,
           points: data.points,
-          titles: data.titles
+          descriptions: data.descriptions
         }))
         .slice(0, 5);
 
-      // Calculate total points
-      const totalPoints = entries.reduce((sum, entry) => sum + entry.points, 0);
+      // Calculate total points from all sources
+      const totalPoints = pointsData.reduce((sum, entry) => sum + entry.points, 0);
 
       // Count completed bonus tasks
       const { data: bonusTasks, error: bonusError } = await supabase

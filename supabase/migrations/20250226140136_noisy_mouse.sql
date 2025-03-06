@@ -189,6 +189,83 @@ BEGIN
     UPDATE yugas
     SET current_points = current_points + points_change
     WHERE id = topic_record.yuga_id;
+    
+    -- Record to points_history
+    INSERT INTO points_history (
+      user_id,
+      yuga_id,
+      points,
+      source_type,
+      source_id,
+      description
+    ) VALUES (
+      (SELECT user_id FROM yugas WHERE id = topic_record.yuga_id),
+      topic_record.yuga_id,
+      points_change,
+      'explore_topic',
+      topic_id,
+      CASE 
+        WHEN new_status = TRUE THEN 'Completed topic: ' || topic_record.topic_name
+        ELSE 'Uncompleted topic: ' || topic_record.topic_name
+      END
+    );
   END IF;
 END;
 $$;
+
+-- Create a points_history table to track all point transactions
+CREATE TABLE points_history (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  user_id UUID NOT NULL REFERENCES auth.users(id) ON DELETE CASCADE,
+  yuga_id UUID NOT NULL REFERENCES yugas(id) ON DELETE CASCADE,
+  points INTEGER NOT NULL,
+  source_type VARCHAR(50) NOT NULL, -- 'daily_entry', 'explore_topic', etc.
+  source_id UUID NOT NULL,
+  description TEXT,
+  created_at TIMESTAMPTZ DEFAULT NOW()
+);
+
+-- Add indexes for better query performance
+CREATE INDEX idx_points_history_user_id ON points_history(user_id);
+CREATE INDEX idx_points_history_yuga_id ON points_history(yuga_id);
+CREATE INDEX idx_points_history_created_at ON points_history(created_at);
+
+-- Enable Row Level Security
+ALTER TABLE points_history ENABLE ROW LEVEL SECURITY;
+
+-- Set up policy so users can only see their own points history
+CREATE POLICY "Users can view their own points history"
+  ON points_history FOR SELECT
+  USING (auth.uid() = user_id);
+
+-- Create a trigger function to record daily entries to points_history
+CREATE OR REPLACE FUNCTION record_daily_entry_points()
+RETURNS TRIGGER
+LANGUAGE plpgsql
+SECURITY DEFINER
+AS $$
+BEGIN
+  INSERT INTO points_history (
+    user_id,
+    yuga_id, 
+    points,
+    source_type,
+    source_id,
+    description
+  ) VALUES (
+    (SELECT user_id FROM yugas WHERE id = NEW.yuga_id),
+    NEW.yuga_id,
+    NEW.points,
+    'daily_entry',
+    NEW.id,
+    'Daily entry: ' || NEW.title
+  );
+  RETURN NEW;
+END;
+$$;
+
+-- Create the trigger on daily_entries
+CREATE TRIGGER daily_entry_points_trigger
+AFTER INSERT ON daily_entries
+FOR EACH ROW
+EXECUTE FUNCTION record_daily_entry_points();
