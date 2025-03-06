@@ -6,6 +6,7 @@ import StatsCard from './components/StatsCard';
 import CreateYugaModal from './components/CreateYugaModal';
 import GameOfEvolutionLanding from './components/LandingPage';
 import TopicSection from './components/TopicSection';
+import BonusTasksSection from './components/BonusTasksSection';
 import { supabase } from './lib/supabase';
 
 function App() {
@@ -276,6 +277,37 @@ function App() {
     setShowLoginForm(true);
     setLoginError('');
     setSignupError('');
+  };
+
+  const handleBonusTaskToggle = async (yugaId, taskId, newStatus) => {
+    try {
+      // Update local state immediately for a responsive UI
+      setYugas(currentYugas => 
+        currentYugas.map(yuga => {
+          if (yuga.id === yugaId) {
+            // Calculate the points change
+            const task = yuga.bonus_tasks.find(t => t.id === taskId);
+            const pointsChange = newStatus ? task.points : -task.points;
+            
+            return {
+              ...yuga,
+              current_points: yuga.current_points + pointsChange,
+              bonus_tasks: yuga.bonus_tasks.map(task => 
+                task.id === taskId 
+                  ? { ...task, completed: newStatus } 
+                  : task
+              )
+            };
+          }
+          return yuga;
+        })
+      );
+      
+      // Refresh stats to show the updated points history
+      calculateStats();
+    } catch (error) {
+      console.error('Error updating yuga state:', error);
+    }
   };
 
   // Show Landing Page
@@ -702,10 +734,17 @@ function App() {
                     key={yuga.id} 
                     yuga={yuga}
                     onAddEntry={handleAddEntry}
+                    onBonusTaskToggle={handleBonusTaskToggle}
                   />
                 ))}
               </div>
-              <div className="xl:col-span-1 mt-4 mb-4">
+              <div className="mt-6">
+                <BonusTasksSection 
+                  yugas={yugas} 
+                  onBonusTaskToggle={handleBonusTaskToggle} 
+                />
+              </div>
+              <div className="mt-6">
                 <TopicSection yugaId={yugas[0].id} />
               </div>
             </div>

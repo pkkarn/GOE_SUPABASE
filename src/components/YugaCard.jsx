@@ -1,8 +1,10 @@
 import { useState } from 'react';
 import { Trophy, Clock, Star, CheckCircle2, Plus, ArrowUpRight } from 'lucide-react';
 import CreateEntryModal from './CreateEntryModal';
+import { supabase } from '../lib/supabase';
+import { toast } from 'react-hot-toast';
 
-const YugaCard = ({ yuga, onAddEntry }) => {
+const YugaCard = ({ yuga, onAddEntry, onBonusTaskToggle }) => {
   const [isEntryModalOpen, setIsEntryModalOpen] = useState(false);
   const progress = (yuga.current_points / yuga.target_points) * 100;
   const progressColor = progress < 30 ? 'from-purple-400 to-indigo-500' : 
@@ -13,6 +15,34 @@ const YugaCard = ({ yuga, onAddEntry }) => {
   const mostRecentEntry = yuga.daily_entries.length > 0 
     ? yuga.daily_entries[yuga.daily_entries.length - 1] 
     : null;
+
+  // Function to toggle bonus task completion
+  const toggleBonusTask = async (taskId, currentStatus) => {
+    try {
+      // Call the database function to toggle task status
+      const { error } = await supabase.rpc('toggle_bonus_task_completion', {
+        task_id: taskId,
+        new_status: !currentStatus
+      });
+      
+      if (error) throw error;
+      
+      // Call the callback to update state in parent component
+      if (onBonusTaskToggle) {
+        onBonusTaskToggle(yuga.id, taskId, !currentStatus);
+      }
+      
+      // Show success message
+      if (!currentStatus) {
+        toast.success(`Bonus task completed! Points added to your Yuga.`);
+      } else {
+        toast.success(`Bonus task marked as pending. Points removed.`);
+      }
+    } catch (error) {
+      toast.error('Failed to update bonus task');
+      console.error('Error:', error);
+    }
+  };
 
   return (
     <div className="bg-white rounded-2xl shadow-lg p-6 hover:shadow-xl transition-all duration-300 border border-gray-100 relative overflow-hidden animate-scaleIn">
@@ -78,8 +108,9 @@ const YugaCard = ({ yuga, onAddEntry }) => {
               yuga.bonus_tasks.map((task, index) => (
                 <div 
                   key={task.id} 
-                  className={`flex items-center justify-between text-sm p-2 rounded-lg ${task.completed ? 'bg-green-50' : 'bg-gray-50'} transition-colors duration-300 animate-fadeIn stagger-item`}
+                  className={`flex items-center justify-between text-sm p-2 rounded-lg ${task.completed ? 'bg-green-50' : 'bg-gray-50'} transition-colors duration-300 animate-fadeIn stagger-item cursor-pointer hover:bg-opacity-80`}
                   style={{ animationDelay: `${0.1 * (index + 1)}s` }}
+                  onClick={() => toggleBonusTask(task.id, task.completed)}
                 >
                   <div className="flex items-center space-x-2">
                     <CheckCircle2 className={`w-4 h-4 ${task.completed ? 'text-green-500' : 'text-gray-400'}`} />

@@ -269,3 +269,69 @@ CREATE TRIGGER daily_entry_points_trigger
 AFTER INSERT ON daily_entries
 FOR EACH ROW
 EXECUTE FUNCTION record_daily_entry_points();
+
+-- Create a function to toggle bonus task completion and record to points_history
+CREATE OR REPLACE FUNCTION toggle_bonus_task_completion(
+  task_id UUID,
+  new_status BOOLEAN
+)
+RETURNS void
+LANGUAGE plpgsql
+SECURITY DEFINER
+AS $$
+DECLARE
+  task_record RECORD;
+  points_change NUMERIC;
+BEGIN
+  -- Get the task information
+  SELECT * INTO task_record FROM bonus_tasks WHERE id = task_id;
+  
+  IF NOT FOUND THEN
+    RAISE EXCEPTION 'Bonus task not found';
+  END IF;
+  
+  -- Calculate points change based on new status
+  IF new_status = TRUE AND task_record.completed = FALSE THEN
+    -- Task is being completed, add points
+    points_change := task_record.points;
+  ELSIF new_status = FALSE AND task_record.completed = TRUE THEN
+    -- Task is being uncompleted, remove points
+    points_change := -task_record.points;
+  ELSE
+    -- No status change, no points change
+    points_change := 0;
+  END IF;
+  
+  -- Update the task status
+  UPDATE bonus_tasks
+  SET completed = new_status
+  WHERE id = task_id;
+  
+  -- Only update Yuga points if there's a points change
+  IF points_change != 0 THEN
+    UPDATE yugas
+    SET current_points = current_points + points_change
+    WHERE id = task_record.yuga_id;
+    
+    -- Record to points_history
+    INSERT INTO points_history (
+      user_id,
+      yuga_id,
+      points,
+      source_type,
+      source_id,
+      description
+    ) VALUES (
+      (SELECT user_id FROM yugas WHERE id = task_record.yuga_id),
+      task_record.yuga_id,
+      points_change,
+      'bonus_task',
+      task_id,
+      CASE 
+        WHEN new_status = TRUE THEN 'Completed bonus task: ' || task_record.name
+        ELSE 'Uncompleted bonus task: ' || task_record.name
+      END
+    );
+  END IF;
+END;
+$$;

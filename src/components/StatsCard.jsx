@@ -1,4 +1,4 @@
-import { TrendingUp, Award, Zap, Calendar, CheckCircle2, ChevronDown, BarChart3 } from 'lucide-react';
+import { TrendingUp, Award, Zap, Calendar, CheckCircle2, ChevronDown, BarChart3, Star, BookOpen, Clock } from 'lucide-react';
 import { useState } from 'react';
 
 const StatsCard = ({ stats, className = '' }) => {
@@ -63,56 +63,109 @@ const StatsCard = ({ stats, className = '' }) => {
         </div>
       </div>
       
-      <div className="relative">
-        <h3 className="text-lg font-semibold mb-4 flex items-center">
-          <div className="p-1.5 bg-indigo-100 rounded-lg mr-2">
-            <BarChart3 className="w-5 h-5 text-indigo-600" />
-          </div>
-          <span className="bg-clip-text text-transparent bg-gradient-to-r from-indigo-600 to-purple-600">
-            Recent Points History
-          </span>
+      <div className="space-y-3">
+        {/* Points history section */}
+        <h3 className="text-lg font-medium text-gray-800 mt-8 mb-4 flex items-center">
+          <Calendar className="w-5 h-5 mr-2 text-indigo-500" />
+          Recent Points History
         </h3>
         
-        <div className="space-y-3">
-          {stats.pointsHistory.map((day, index) => (
-            <div key={index} className="rounded-xl border border-gray-100 hover:border-indigo-200 transition-all duration-300 overflow-hidden shadow-sm">
-              <button 
-                onClick={() => toggleDay(day.date)}
-                className="w-full text-left p-3 bg-gradient-to-r from-white to-gray-50"
-              >
-                <div className="flex items-center justify-between text-sm">
-                  <div className="flex items-center space-x-2">
-                    <ChevronDown 
-                      className={`w-4 h-4 text-indigo-500 transition-transform duration-300 ${expandedDays[day.date] ? 'transform rotate-180' : ''}`}
-                    />
-                    <span className="font-medium text-gray-700">{day.date}</span>
-                  </div>
-                  <span className="font-bold text-indigo-600">+{day.points} points</span>
+        {stats.pointsHistory.map((day, index) => (
+          <div key={index} className="rounded-xl border border-gray-100 hover:border-indigo-200 transition-all duration-300 overflow-hidden shadow-sm">
+            <button 
+              onClick={() => toggleDay(day.date)}
+              className="w-full text-left p-3 bg-gradient-to-r from-white to-gray-50"
+            >
+              <div className="flex items-center justify-between text-sm">
+                <div className="flex items-center space-x-2">
+                  <ChevronDown 
+                    className={`w-4 h-4 text-indigo-500 transition-transform duration-300 ${expandedDays[day.date] ? 'transform rotate-180' : ''}`}
+                  />
+                  <span className="font-medium text-gray-700">{day.date}</span>
                 </div>
-              </button>
-              
-              {expandedDays[day.date] && (
-                <div className="px-4 py-3 bg-indigo-50 border-t border-indigo-100">
-                  <h4 className="text-xs font-semibold text-indigo-700 uppercase mb-2">Activity Details</h4>
-                  <ul className="space-y-1.5">
-                    {day.descriptions.map((desc, idx) => (
-                      <li key={idx} className="text-sm text-gray-700 flex items-start">
-                        <div className="w-1.5 h-1.5 rounded-full bg-indigo-400 mt-1.5 mr-2 flex-shrink-0"></div>
+                <span className="font-bold text-indigo-600">+{day.points} points</span>
+              </div>
+            </button>
+            
+            {expandedDays[day.date] && (
+              <div className="px-4 py-3 bg-indigo-50 border-t border-indigo-100">
+                <h4 className="text-xs font-semibold text-indigo-700 uppercase mb-2">Activity Details</h4>
+                <ul className="space-y-1.5">
+                  {day.descriptions.map((desc, idx) => {
+                    // Determine icon and color based on description content
+                    let icon = <div className="w-1.5 h-1.5 rounded-full bg-indigo-400 mt-1.5 mr-2 flex-shrink-0"></div>;
+                    let textColor = "text-gray-700";
+                    
+                    if (desc.includes('bonus task')) {
+                      icon = <Star className="w-3 h-3 text-amber-500 mr-1.5 flex-shrink-0" />;
+                      textColor = "text-amber-700";
+                    } else if (desc.includes('topic')) {
+                      icon = <BookOpen className="w-3 h-3 text-purple-500 mr-1.5 flex-shrink-0" />;
+                      textColor = "text-purple-700";
+                    } else if (desc.includes('Daily entry')) {
+                      icon = <Clock className="w-3 h-3 text-blue-500 mr-1.5 flex-shrink-0" />;
+                      textColor = "text-blue-700";
+                    }
+                    
+                    return (
+                      <li key={idx} className={`text-sm ${textColor} flex items-start`}>
+                        {icon}
                         <span>{desc}</span>
                       </li>
-                    ))}
-                  </ul>
-                </div>
-              )}
+                    );
+                  })}
+                </ul>
+              </div>
+            )}
+          </div>
+        ))}
+        
+        {/* Recently completed bonus tasks section */}
+        <h3 className="text-lg font-medium text-gray-800 mt-8 mb-4 flex items-center">
+          <Star className="w-5 h-5 mr-2 text-amber-500" />
+          Recent Bonus Tasks
+        </h3>
+        
+        {stats.pointsHistory
+          .flatMap(day => 
+            day.descriptions
+              .filter(desc => desc.includes('bonus task'))
+              .map(desc => ({ date: day.date, description: desc }))
+          )
+          .slice(0, 3)
+          .length > 0 ? (
+            <div className="space-y-2">
+              {stats.pointsHistory
+                .flatMap(day => 
+                  day.descriptions
+                    .filter(desc => desc.includes('bonus task'))
+                    .map(desc => ({ date: day.date, description: desc }))
+                )
+                .slice(0, 3)
+                .map((item, idx) => (
+                  <div 
+                    key={idx}
+                    className="bg-amber-50 border border-amber-100 rounded-xl p-3"
+                  >
+                    <div className="flex items-start">
+                      <Star className="w-4 h-4 text-amber-500 mr-2 mt-0.5 flex-shrink-0" />
+                      <div>
+                        <p className="text-sm text-amber-800 font-medium">{item.description}</p>
+                        <p className="text-xs text-gray-500 mt-1">Completed on {item.date}</p>
+                      </div>
+                    </div>
+                  </div>
+                ))
+              }
             </div>
-          ))}
-          
-          {stats.pointsHistory.length === 0 && (
-            <div className="text-center p-4 bg-gray-50 rounded-xl text-gray-500 italic">
-              No recent activity to display
+          ) : (
+            <div className="bg-amber-50 border border-amber-100 rounded-xl p-4 text-center">
+              <Star className="w-8 h-8 text-amber-300 mx-auto mb-2 opacity-50" />
+              <p className="text-sm text-amber-800 font-medium">No bonus tasks completed recently</p>
+              <p className="text-xs text-gray-500 mt-1">Complete bonus tasks to see them here</p>
             </div>
-          )}
-        </div>
+          )
+        }
       </div>
     </div>
   );
