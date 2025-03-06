@@ -53,6 +53,12 @@ const CreateYugaModal = ({ isOpen, onClose, onSuccess }) => {
         })
         .select()
         .single();
+
+        await supabase.from('bonus_tasks').insert({
+          yuga_id: yuga.id,
+          name: formData.bonusTasks[0].name,
+          points: parseFloat(formData.bonusTasks[0].points)
+        })
   
       if (yugaError) throw yugaError;
   
