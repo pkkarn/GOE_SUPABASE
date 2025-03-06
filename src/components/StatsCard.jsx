@@ -1,7 +1,9 @@
 import { TrendingUp, Award, Zap, Calendar, CheckCircle2, ChevronDown, BarChart3, Star, BookOpen, Clock } from 'lucide-react';
 import { useState } from 'react';
+import { supabase } from '../lib/supabase';
+import { toast } from 'react-hot-toast';
 
-const StatsCard = ({ stats, className = '' }) => {
+const StatsCard = ({ stats, className = '', yugas, onBonusTaskToggle }) => {
   const [expandedDays, setExpandedDays] = useState({});
 
   const toggleDay = (date) => {
@@ -9,6 +11,43 @@ const StatsCard = ({ stats, className = '' }) => {
       ...prev,
       [date]: !prev[date]
     }));
+  };
+
+  // Combine all bonus tasks from all yugas
+  const allBonusTasks = yugas ? yugas.flatMap(yuga => 
+    yuga.bonus_tasks.map(task => ({
+      ...task,
+      yugaName: yuga.name,
+      yugaId: yuga.id
+    }))
+  ) : [];
+
+  // Toggle task completion
+  const toggleBonusTask = async (yugaId, taskId, currentStatus) => {
+    try {
+      // Call the database function to toggle task status
+      const { error } = await supabase.rpc('toggle_bonus_task_completion', {
+        task_id: taskId,
+        new_status: !currentStatus
+      });
+      
+      if (error) throw error;
+      
+      // Call the callback to update state in parent component
+      if (onBonusTaskToggle) {
+        onBonusTaskToggle(yugaId, taskId, !currentStatus);
+      }
+      
+      // Show success message
+      if (!currentStatus) {
+        toast.success(`Bonus task completed! Points added to your Yuga.`);
+      } else {
+        toast.success(`Bonus task marked as pending. Points removed.`);
+      }
+    } catch (error) {
+      toast.error('Failed to update bonus task');
+      console.error('Error:', error);
+    }
   };
 
   return (
@@ -61,6 +100,68 @@ const StatsCard = ({ stats, className = '' }) => {
           </div>
           <p className="text-2xl font-bold text-amber-800">{stats.consistencyStreak} days</p>
         </div>
+      </div>
+      
+      {/* Bonus Tasks Section */}
+      <div className="space-y-3 mb-8">
+        <h3 className="text-lg font-medium text-gray-800 mb-4 flex items-center">
+          <Star className="w-5 h-5 mr-2 text-amber-500" />
+          Bonus Tasks
+        </h3>
+        
+        {allBonusTasks.length > 0 ? (
+          <div className="space-y-2">
+            {allBonusTasks.map((task) => (
+              <div 
+                key={task.id} 
+                className={`flex items-center justify-between p-3 rounded-xl border ${
+                  task.completed 
+                  ? 'bg-green-50 border-green-100' 
+                  : 'bg-amber-50 border-amber-100'
+                } transition-all duration-300 hover:shadow-md cursor-pointer`}
+                onClick={() => toggleBonusTask(task.yugaId, task.id, task.completed)}
+              >
+                <div className="flex-grow">
+                  <div className="flex items-center space-x-2">
+                    <CheckCircle2 
+                      className={`w-4 h-4 ${
+                        task.completed 
+                        ? 'text-green-500 fill-current' 
+                        : 'text-amber-400'
+                      }`} 
+                    />
+                    <div>
+                      <h3 className={`text-sm font-medium ${
+                        task.completed ? 'line-through text-gray-600' : 'text-gray-800'
+                      }`}>
+                        {task.name}
+                      </h3>
+                      <p className="text-xs text-gray-500">
+                        {task.yugaName}
+                      </p>
+                    </div>
+                  </div>
+                </div>
+                <div className="flex items-center">
+                  <span className={`font-medium px-2 py-1 rounded-full text-xs flex items-center ${
+                    task.completed 
+                    ? 'bg-green-100 text-green-700' 
+                    : 'bg-amber-100 text-amber-700'
+                  }`}>
+                    <Award className="w-3 h-3 mr-1" />
+                    {task.points}
+                  </span>
+                </div>
+              </div>
+            ))}
+          </div>
+        ) : (
+          <div className="text-center py-4 bg-amber-50 rounded-xl border border-amber-100">
+            <Star className="w-8 h-8 text-amber-300 mx-auto mb-2 opacity-50" />
+            <p className="text-sm text-gray-600 font-medium">No bonus tasks available</p>
+            <p className="text-xs text-gray-500 mt-1">Create a Yuga with bonus tasks to get started</p>
+          </div>
+        )}
       </div>
       
       <div className="space-y-3">
@@ -119,53 +220,6 @@ const StatsCard = ({ stats, className = '' }) => {
             )}
           </div>
         ))}
-        
-        {/* Recently completed bonus tasks section */}
-        <h3 className="text-lg font-medium text-gray-800 mt-8 mb-4 flex items-center">
-          <Star className="w-5 h-5 mr-2 text-amber-500" />
-          Recent Bonus Tasks
-        </h3>
-        
-        {stats.pointsHistory
-          .flatMap(day => 
-            day.descriptions
-              .filter(desc => desc.includes('bonus task'))
-              .map(desc => ({ date: day.date, description: desc }))
-          )
-          .slice(0, 3)
-          .length > 0 ? (
-            <div className="space-y-2">
-              {stats.pointsHistory
-                .flatMap(day => 
-                  day.descriptions
-                    .filter(desc => desc.includes('bonus task'))
-                    .map(desc => ({ date: day.date, description: desc }))
-                )
-                .slice(0, 3)
-                .map((item, idx) => (
-                  <div 
-                    key={idx}
-                    className="bg-amber-50 border border-amber-100 rounded-xl p-3"
-                  >
-                    <div className="flex items-start">
-                      <Star className="w-4 h-4 text-amber-500 mr-2 mt-0.5 flex-shrink-0" />
-                      <div>
-                        <p className="text-sm text-amber-800 font-medium">{item.description}</p>
-                        <p className="text-xs text-gray-500 mt-1">Completed on {item.date}</p>
-                      </div>
-                    </div>
-                  </div>
-                ))
-              }
-            </div>
-          ) : (
-            <div className="bg-amber-50 border border-amber-100 rounded-xl p-4 text-center">
-              <Star className="w-8 h-8 text-amber-300 mx-auto mb-2 opacity-50" />
-              <p className="text-sm text-amber-800 font-medium">No bonus tasks completed recently</p>
-              <p className="text-xs text-gray-500 mt-1">Complete bonus tasks to see them here</p>
-            </div>
-          )
-        }
       </div>
     </div>
   );

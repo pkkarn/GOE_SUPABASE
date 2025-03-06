@@ -778,17 +778,15 @@ function App() {
                 ))}
               </div>
               <div className="mt-6">
-                <BonusTasksSection 
-                  yugas={yugas} 
-                  onBonusTaskToggle={handleBonusTaskToggle} 
-                />
-              </div>
-              <div className="mt-6">
                 <TopicSection yugaId={yugas[0].id} />
               </div>
             </div>
             <div className="xl:col-span-1">
-              <StatsCard stats={stats} />
+              <StatsCard 
+                stats={stats} 
+                yugas={yugas}
+                onBonusTaskToggle={handleBonusTaskToggle}
+              />
             </div>
           </div>
         )}

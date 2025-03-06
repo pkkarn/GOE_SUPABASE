@@ -3,7 +3,8 @@ import { Star, CheckCircle2, Award, Filter, Search } from 'lucide-react';
 import { supabase } from '../lib/supabase';
 import { toast } from 'react-hot-toast';
 
-const BonusTasksSection = ({ yugas, onBonusTaskToggle }) => {
+const BonusTasksSection = ({ yugas, onBonusTaskToggle, isSidebar = false }) => {
+  // If it's sidebar mode, don't use filters or search
   const [searchTerm, setSearchTerm] = useState('');
   const [filter, setFilter] = useState('all'); // 'all', 'completed', 'pending'
 
@@ -16,21 +17,23 @@ const BonusTasksSection = ({ yugas, onBonusTaskToggle }) => {
     }))
   );
 
-  // Apply filters
-  const filteredTasks = allBonusTasks.filter(task => {
-    // Apply search filter
-    const matchesSearch = 
-      task.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      task.yugaName.toLowerCase().includes(searchTerm.toLowerCase());
-    
-    // Apply status filter
-    const matchesFilter = 
-      filter === 'all' || 
-      (filter === 'completed' && task.completed) || 
-      (filter === 'pending' && !task.completed);
-    
-    return matchesSearch && matchesFilter;
-  });
+  // Apply filters (only if not in sidebar mode)
+  const filteredTasks = isSidebar 
+    ? allBonusTasks 
+    : allBonusTasks.filter(task => {
+        // Apply search filter
+        const matchesSearch = 
+          task.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+          task.yugaName.toLowerCase().includes(searchTerm.toLowerCase());
+        
+        // Apply status filter
+        const matchesFilter = 
+          filter === 'all' || 
+          (filter === 'completed' && task.completed) || 
+          (filter === 'pending' && !task.completed);
+        
+        return matchesSearch && matchesFilter;
+      });
 
   // Toggle task completion
   const toggleBonusTask = async (yugaId, taskId, currentStatus) => {
@@ -60,6 +63,73 @@ const BonusTasksSection = ({ yugas, onBonusTaskToggle }) => {
     }
   };
 
+  if (isSidebar) {
+    // Simplified sidebar version
+    return (
+      <div className="space-y-3 mt-8">
+        <h3 className="text-lg font-medium text-gray-800 mb-4 flex items-center">
+          <Star className="w-5 h-5 mr-2 text-amber-500" />
+          Bonus Tasks
+        </h3>
+        
+        {allBonusTasks.length > 0 ? (
+          <div className="space-y-2">
+            {allBonusTasks.map((task) => (
+              <div 
+                key={task.id} 
+                className={`flex items-center justify-between p-3 rounded-xl border ${
+                  task.completed 
+                  ? 'bg-green-50 border-green-100' 
+                  : 'bg-amber-50 border-amber-100'
+                } transition-all duration-300 hover:shadow-md cursor-pointer`}
+                onClick={() => toggleBonusTask(task.yugaId, task.id, task.completed)}
+              >
+                <div className="flex-grow">
+                  <div className="flex items-center space-x-2">
+                    <CheckCircle2 
+                      className={`w-4 h-4 ${
+                        task.completed 
+                        ? 'text-green-500 fill-current' 
+                        : 'text-amber-400'
+                      }`} 
+                    />
+                    <div>
+                      <h3 className={`text-sm font-medium ${
+                        task.completed ? 'line-through text-gray-600' : 'text-gray-800'
+                      }`}>
+                        {task.name}
+                      </h3>
+                      <p className="text-xs text-gray-500">
+                        {task.yugaName}
+                      </p>
+                    </div>
+                  </div>
+                </div>
+                <div className="flex items-center">
+                  <span className={`font-medium px-2 py-1 rounded-full text-xs flex items-center ${
+                    task.completed 
+                    ? 'bg-green-100 text-green-700' 
+                    : 'bg-amber-100 text-amber-700'
+                  }`}>
+                    <Award className="w-3 h-3 mr-1" />
+                    {task.points}
+                  </span>
+                </div>
+              </div>
+            ))}
+          </div>
+        ) : (
+          <div className="text-center py-4 bg-amber-50 rounded-xl border border-amber-100">
+            <Star className="w-8 h-8 text-amber-300 mx-auto mb-2 opacity-50" />
+            <p className="text-sm text-gray-600 font-medium">No bonus tasks available</p>
+            <p className="text-xs text-gray-500 mt-1">Create a Yuga with bonus tasks to get started</p>
+          </div>
+        )}
+      </div>
+    );
+  }
+
+  // Original full version with filters for main content
   return (
     <div className="bg-white rounded-2xl shadow-lg p-6 border border-gray-100 relative overflow-hidden">
       {/* Decorative elements */}
