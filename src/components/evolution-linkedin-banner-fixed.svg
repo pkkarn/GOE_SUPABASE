@@ -1,0 +1,147 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1584 396">
+  <!-- Background Gradient -->
+  <defs>
+    <linearGradient id="bgGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#4C1D95" />
+      <stop offset="100%" stop-color="#1E1B4B" />
+    </linearGradient>
+    
+    <linearGradient id="titleGradient" x1="0%" y1="0%" x2="100%" y2="0%">
+      <stop offset="0%" stop-color="#D8B4FE" />
+      <stop offset="100%" stop-color="#F9A8D4" />
+    </linearGradient>
+    
+    <linearGradient id="buttonGradient" x1="0%" y1="0%" x2="100%" y2="0%">
+      <stop offset="0%" stop-color="#8B5CF6" />
+      <stop offset="100%" stop-color="#7C3AED" />
+    </linearGradient>
+    
+    <filter id="glow" x="-20%" y="-20%" width="140%" height="140%">
+      <feGaussianBlur stdDeviation="10" result="blur" />
+      <feComposite in="SourceGraphic" in2="blur" operator="over" />
+    </filter>
+    
+    <clipPath id="cardClip">
+      <rect x="1000" y="78" width="500" height="240" rx="16" />
+    </clipPath>
+    
+    <pattern id="starsPattern" x="0" y="0" width="400" height="400" patternUnits="userSpaceOnUse">
+      <rect width="400" height="400" fill="transparent"/>
+      <g opacity="0.8">
+        <circle cx="20" cy="30" r="1" fill="white"><animate attributeName="opacity" values="0.8;0.2;0.8" dur="3s" repeatCount="indefinite" /></circle>
+        <circle cx="150" cy="120" r="1.5" fill="white"><animate attributeName="opacity" values="0.8;0.3;0.8" dur="4s" repeatCount="indefinite" /></circle>
+        <circle cx="350" cy="50" r="1" fill="white"><animate attributeName="opacity" values="0.8;0.2;0.8" dur="2.5s" repeatCount="indefinite" /></circle>
+        <circle cx="270" cy="180" r="1.2" fill="white"><animate attributeName="opacity" values="0.8;0.3;0.8" dur="3.5s" repeatCount="indefinite" /></circle>
+        <circle cx="390" cy="280" r="1" fill="white"><animate attributeName="opacity" values="0.8;0.2;0.8" dur="2s" repeatCount="indefinite" /></circle>
+        <circle cx="80" cy="250" r="1.4" fill="white"><animate attributeName="opacity" values="0.8;0.3;0.8" dur="3.2s" repeatCount="indefinite" /></circle>
+        <circle cx="200" cy="350" r="1" fill="white"><animate attributeName="opacity" values="0.8;0.2;0.8" dur="2.8s" repeatCount="indefinite" /></circle>
+        <circle cx="300" cy="390" r="1.3" fill="white"><animate attributeName="opacity" values="0.8;0.3;0.8" dur="3.7s" repeatCount="indefinite" /></circle>
+      </g>
+    </pattern>
+  </defs>
+
+  <!-- Main Background -->
+  <rect width="1584" height="396" fill="url(#bgGradient)" />
+  
+  <!-- Stars Pattern -->
+  <rect width="1584" height="396" fill="url(#starsPattern)" />
+  
+  <!-- Nebula Effects -->
+  <circle cx="200" cy="200" r="300" fill="#7E22CE" opacity="0.1" filter="blur(70px)" />
+  <circle cx="1200" cy="250" r="250" fill="#6D28D9" opacity="0.1" filter="blur(60px)" />
+  <circle cx="800" cy="100" r="200" fill="#C026D3" opacity="0.1" filter="blur(50px)" />
+  
+  <!-- Left Content Section -->
+  <g transform="translate(50, 0)">
+    <!-- Logo -->
+    <g transform="translate(70, 198) scale(0.5)">
+      <!-- Main Diamond Shape -->
+      <g transform="rotate(45) translate(-60, -60)">
+        <rect width="120" height="120" rx="5" fill="#8B5CF6" />
+        <rect x="10" y="10" width="100" height="100" rx="4" fill="#2D1D4A" />
+      </g>
+      
+      <!-- Star Icon -->
+      <path d="M0,-35 L13,-5 L45,-5 L20,15 L30,45 L0,25 L-30,45 L-20,15 L-45,-5 L-13,-5 Z" fill="#F59E0B" />
+    </g>
+    
+    <!-- Title Text -->
+    <text x="220" y="160" font-family="Arial, sans-serif" font-size="70" font-weight="bold" fill="url(#titleGradient)">Game of Evolution</text>
+    
+    <!-- Tagline -->
+    <text x="220" y="210" font-family="Arial, sans-serif" font-size="28" fill="#D8B4FE">Transform your personal development</text>
+    <text x="220" y="250" font-family="Arial, sans-serif" font-size="28" fill="#D8B4FE">into an epic evolution journey</text>
+    
+    <!-- Call to Action Button -->
+    <g transform="translate(220, 290)">
+      <rect width="220" height="50" rx="25" fill="url(#buttonGradient)" />
+      <text x="110" y="32" font-family="Arial, sans-serif" font-size="20" fill="white" text-anchor="middle">Create Your Yuga</text>
+    </g>
+  </g>
+  
+  <!-- App Mockup Card -->
+  <g>
+    <rect x="1000" y="78" width="500" height="240" rx="16" fill="#2D1D4A" stroke="#8B5CF6" stroke-width="2" opacity="0.9" />
+    
+    <!-- Card Content -->
+    <g clip-path="url(#cardClip)">
+      <!-- Background Glow -->
+      <circle cx="1250" cy="198" r="140" fill="#7E22CE" opacity="0.3" filter="blur(40px)" />
+      
+      <!-- Header -->
+      <rect x="1000" y="78" width="500" height="60" fill="#1F1646" />
+      <text x="1030" y="118" font-family="Arial, sans-serif" font-size="22" fill="white">Vaidushi Yuga</text>
+      
+      <!-- Trophy Icon -->
+      <g transform="translate(1420, 108)">
+        <rect width="100" height="30" rx="15" fill="#4C1D95" opacity="0.6" />
+        <circle cx="20" cy="15" r="10" fill="#FBBF24" opacity="0.8" />
+        <text x="40" y="20" font-family="Arial, sans-serif" font-size="14" fill="#FBBF24">2.0/1000</text>
+      </g>
+      
+      <!-- Progress Section -->
+      <g transform="translate(1030, 168)">
+        <text font-family="Arial, sans-serif" font-size="14" fill="#D8B4FE">Recent Activity</text>
+        <text x="380" y="0" font-family="Arial, sans-serif" font-size="14" fill="#D8B4FE" text-anchor="end">0.5 hours</text>
+        
+        <rect y="20" width="440" height="12" rx="6" fill="#1F1646" />
+        <rect y="20" width="66" height="12" rx="6" fill="url(#titleGradient)">
+          <animate attributeName="width" values="60;66;60" dur="3s" repeatCount="indefinite" />
+        </rect>
+      </g>
+      
+      <!-- Add Daily Entry Button -->
+      <g transform="translate(1030, 230)">
+        <rect width="440" height="40" rx="8" fill="#7C3AED" />
+        <text x="220" y="26" font-family="Arial, sans-serif" font-size="16" fill="white" text-anchor="middle">+ Add Daily Entry</text>
+      </g>
+      
+      <!-- Bonus Tasks -->
+      <g transform="translate(1030, 290)">
+        <text font-family="Arial, sans-serif" font-size="14" fill="#D8B4FE">Bonus Tasks</text>
+        <text x="440" y="0" font-family="Arial, sans-serif" font-size="14" fill="#A78BFA" text-anchor="end">No bonus tasks available</text>
+      </g>
+    </g>
+  </g>
+  
+  <!-- Floating Elements -->
+  <g opacity="0.7">
+    <!-- Orbiting Element 1 -->
+    <circle cx="700" cy="120" r="12" fill="#7C3AED" opacity="0.8">
+      <animate attributeName="cx" values="700;720;740;720;700" dur="10s" repeatCount="indefinite" />
+      <animate attributeName="cy" values="120;90;120;150;120" dur="10s" repeatCount="indefinite" />
+    </circle>
+    
+    <!-- Orbiting Element 2 -->
+    <circle cx="300" cy="300" r="8" fill="#EC4899" opacity="0.8">
+      <animate attributeName="cx" values="300;320;340;320;300" dur="8s" repeatCount="indefinite" />
+      <animate attributeName="cy" values="300;280;300;320;300" dur="8s" repeatCount="indefinite" />
+    </circle>
+    
+    <!-- Orbiting Element 3 -->
+    <circle cx="1400" cy="180" r="10" fill="#8B5CF6" opacity="0.8">
+      <animate attributeName="cx" values="1400;1420;1400;1380;1400" dur="12s" repeatCount="indefinite" />
+      <animate attributeName="cy" values="180;200;220;200;180" dur="12s" repeatCount="indefinite" />
+    </circle>
+  </g>
+</svg>

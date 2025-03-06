@@ -98,3 +98,97 @@ CREATE POLICY "Users can manage entries for their yugas"
       AND yugas.user_id = auth.uid()
     )
   );
+
+-- create a function to update the yuga points
+BEGIN
+  UPDATE yugas
+  SET current_points = current_points + p_points
+  WHERE id = p_yuga_id;
+END;
+
+
+-- Create the explore_topics table with UUID for yuga_id and points
+CREATE TABLE IF NOT EXISTS explore_topics (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    user_id UUID NOT NULL REFERENCES auth.users(id) ON DELETE CASCADE,
+    yuga_id UUID NOT NULL REFERENCES yugas(id) ON DELETE CASCADE,
+    topic_name VARCHAR(255) NOT NULL,
+    description TEXT,
+    points INTEGER NOT NULL DEFAULT 5,
+    is_completed BOOLEAN DEFAULT FALSE,
+    created_at TIMESTAMPTZ DEFAULT NOW(),
+    completed_at TIMESTAMPTZ
+);
+
+-- Add indexes for better query performance
+CREATE INDEX IF NOT EXISTS idx_explore_topics_user_id ON explore_topics(user_id);
+CREATE INDEX IF NOT EXISTS idx_explore_topics_yuga_id ON explore_topics(yuga_id);
+CREATE INDEX IF NOT EXISTS idx_explore_topics_completed ON explore_topics(is_completed);
+
+-- Enable Row Level Security (RLS)
+ALTER TABLE explore_topics ENABLE ROW LEVEL SECURITY;
+
+-- Set up policies so users can only see and modify their own topics
+CREATE POLICY "Users can view their own topics" 
+    ON explore_topics FOR SELECT 
+    USING (auth.uid() = user_id);
+
+CREATE POLICY "Users can insert their own topics" 
+    ON explore_topics FOR INSERT 
+    WITH CHECK (auth.uid() = user_id);
+
+CREATE POLICY "Users can update their own topics" 
+    ON explore_topics FOR UPDATE 
+    USING (auth.uid() = user_id);
+
+CREATE POLICY "Users can delete their own topics" 
+    ON explore_topics FOR DELETE 
+    USING (auth.uid() = user_id);
+
+-- Create a database function to handle topic completion status toggle and update Yuga points
+CREATE OR REPLACE FUNCTION toggle_topic_completion(
+  topic_id UUID,
+  new_status BOOLEAN,
+  completed_time TIMESTAMPTZ
+)
+RETURNS void
+LANGUAGE plpgsql
+SECURITY DEFINER
+AS $$
+DECLARE
+  topic_record RECORD;
+  points_change INTEGER;
+BEGIN
+  -- Get the topic information
+  SELECT * INTO topic_record FROM explore_topics WHERE id = topic_id;
+  
+  IF NOT FOUND THEN
+    RAISE EXCEPTION 'Topic not found';
+  END IF;
+  
+  -- Calculate points change based on new status
+  IF new_status = TRUE AND topic_record.is_completed = FALSE THEN
+    -- Topic is being completed, add points
+    points_change := topic_record.points;
+  ELSIF new_status = FALSE AND topic_record.is_completed = TRUE THEN
+    -- Topic is being uncompleted, remove points
+    points_change := -topic_record.points;
+  ELSE
+    -- No status change, no points change
+    points_change := 0;
+  END IF;
+  
+  -- Update the topic status
+  UPDATE explore_topics
+  SET is_completed = new_status,
+      completed_at = completed_time
+  WHERE id = topic_id;
+  
+  -- Only update Yuga points if there's a points change
+  IF points_change != 0 THEN
+    UPDATE yugas
+    SET current_points = current_points + points_change
+    WHERE id = topic_record.yuga_id;
+  END IF;
+END;
+$$;

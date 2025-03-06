@@ -5,6 +5,7 @@ import YugaCard from './components/YugaCard';
 import StatsCard from './components/StatsCard';
 import CreateYugaModal from './components/CreateYugaModal';
 import GameOfEvolutionLanding from './components/LandingPage';
+import TopicSection from './components/TopicSection';
 import { supabase } from './lib/supabase';
 
 function App() {
@@ -703,6 +704,9 @@ function App() {
                     onAddEntry={handleAddEntry}
                   />
                 ))}
+              </div>
+              <div className="xl:col-span-1 mt-4 mb-4">
+                <TopicSection yugaId={yugas[0].id} />
               </div>
             </div>
             <div className="xl:col-span-1">
